@@ -3,18 +3,64 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"net/http"
 	"rsc.io/quote"
-
-	"github.com/minghinmatthewlam/hello_world/utils"
+	"time"
 )
 
 type CustomSlice []int
 
+type key int
+
+const (
+	cache key = iota
+	global
+	isEnded
+)
+
 func main() {
 	fmt.Printf("Hello world...My name is %v\n", quote.Go())
-	testBuffer()
-	utils.RandomFunc()
+
+	firstChan := make(chan string)
+	secondChan := make(chan string)
+	exit := make(chan string)
+
+	go func() {
+		t := time.NewTicker(1 * time.Second)
+		for now := range t.C {
+			firstChan <- fmt.Sprintf("one at time %v", now)
+		}
+	}()
+	go func() {
+		t := time.NewTicker(2 * time.Second)
+		for now := range t.C {
+			secondChan <- fmt.Sprintf("two at time %v", now)
+		}
+	}()
+
+	go func() {
+		t := time.NewTimer(10 * time.Second)
+		exit <- time.Time.String(<-t.C)
+	}()
+
+	for {
+		select {
+		case msg1 := <-firstChan:
+			fmt.Println(msg1)
+		case msg2 := <-secondChan:
+			fmt.Println(msg2)
+		case <-exit:
+			fmt.Println("exiting...")
+			break
+		}
+
+	}
 	fmt.Println("Finished test")
+}
+
+func helloResponse(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Got request with context: ", r.Context())
+	fmt.Fprintf(w, "hello world")
 }
 
 func testBuffer() {
