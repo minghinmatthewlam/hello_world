@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"os"
 	"rsc.io/quote"
 	"time"
 )
@@ -51,7 +52,7 @@ func main() {
 			fmt.Println(msg2)
 		case <-exit:
 			fmt.Println("exiting...")
-			break
+			os.Exit(0)
 		}
 
 	}
